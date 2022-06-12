@@ -2,9 +2,9 @@ use std::{env, net::SocketAddr};
 
 use axum::{
     http::{Request, Response, StatusCode},
-    response::Html,
+    response::{Html, IntoResponse},
     routing::get,
-    Router,
+    Router, handler::Handler,
 };
 
 mod repo;
@@ -13,7 +13,8 @@ mod repo;
 async fn main() {
     let app = Router::new()
         .route("/", get(root))
-        .route("/test", get(test));
+        .route("/test", get(test))
+        .fallback(handler_404.into_service());
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
@@ -27,7 +28,7 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
-fn test() -> Html<String> {
+async fn test() -> impl IntoResponse {
     dotenv::dotenv().ok();
     let client = redis::Client::open(env::var("REDIS_URL").unwrap()).unwrap();
     let mut con = client.get_connection().unwrap();
@@ -37,7 +38,7 @@ fn test() -> Html<String> {
         .query(&mut con)
         .unwrap();
     let s: String = redis::cmd("GET").arg("my_key").query(&mut con).unwrap();
-    Html(s)
+    (StatusCode::OK, s)
 }
 
 #[cfg(test)]
@@ -67,4 +68,8 @@ mod tests {
         let bar: String = redis::cmd("GET").arg("my_key").query(&mut con).unwrap();
         dbg!(bar);
     }
+}
+
+async fn handler_404() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, "nothing to see here")
 }

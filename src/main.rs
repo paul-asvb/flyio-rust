@@ -1,20 +1,25 @@
-use std::{env, net::SocketAddr};
+use std::{env, net::SocketAddr, sync::Arc};
 
 use axum::{
+    handler::Handler,
     http::{Request, Response, StatusCode},
     response::{Html, IntoResponse},
     routing::get,
-    Router, handler::Handler,
+    Extension, Router,
 };
+use repo::{DynSessionRepo, RedisSessionRepo};
 
 mod repo;
 
 #[tokio::main]
 async fn main() {
+    let session_repo = Arc::new(RedisSessionRepo) as DynSessionRepo;
+
     let app = Router::new()
         .route("/", get(root))
         .route("/test", get(test))
-        .fallback(handler_404.into_service());
+        .fallback(handler_404.into_service())
+        .layer(Extension(session_repo));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
@@ -25,7 +30,7 @@ async fn main() {
 
 // basic handler that responds with a static string
 async fn root() -> &'static str {
-    "Hello, World!"
+    "Hello, session-axum-handler!"
 }
 
 async fn test() -> impl IntoResponse {

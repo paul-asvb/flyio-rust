@@ -1,20 +1,13 @@
-# Flyio Rust!
+# session storage for webrtc
 
-This is an example app demonstrating how to deploy a Rust program on Fly.io
+running on fly.io
+## Develop
 
-### fly.toml
-
-A fairly standard `fly.toml` configuration, except for the `cmd` override:
-
-```toml
-[experimental]
-cmd = "./hello" # should be the name of the binary you want to run
 ```
-
+cargo watch -x "test"
+```
 ## Deploy
 
-Once you've went through the steps of `flyctl init`:
-
 ```
-flyctl deploy
+DOCKER_BUILDKIT=1 flyctl deploy
 ```

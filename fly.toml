@@ -1,6 +1,6 @@
-# fly.toml file generated for patient-sunset-9302 on 2022-06-10T14:00:24+02:00
+# fly.toml file generated for small-waterfall-1445 on 2022-06-12T14:10:18+02:00
 
-app = "patient-sunset-9302"
+app = "small-waterfall-1445"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
@@ -10,7 +10,7 @@ processes = []
 [experimental]
   allowed_public_ports = []
   auto_rollback = true
-  cmd = "./flyio-rust"
+  cmd = "./sar"
 
 [[services]]
   http_checks = []

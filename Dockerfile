@@ -26,6 +26,6 @@ USER app
 WORKDIR /app
 
 # Get compiled binaries from builder's cargo install directory
-COPY --from=builder /usr/local/cargo/bin/flyio-rust /app/flyio-rust
+COPY --from=builder /usr/local/cargo/bin/session-axum-redis /app/sar
 
 # No CMD or ENTRYPOINT, see fly.toml with `cmd` override.

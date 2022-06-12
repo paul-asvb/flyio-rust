@@ -1,12 +1,19 @@
-use std::net::SocketAddr;
+use std::{env, net::SocketAddr};
 
-use axum::{routing::get, Router};
+use axum::{
+    http::{Request, Response, StatusCode},
+    response::Html,
+    routing::get,
+    Router,
+};
 
 mod repo;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/", get(root));
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/test", get(test));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
@@ -20,13 +27,24 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
+fn test() -> Html<String> {
+    dotenv::dotenv().ok();
+    let client = redis::Client::open(env::var("REDIS_URL").unwrap()).unwrap();
+    let mut con = client.get_connection().unwrap();
+    let _: () = redis::cmd("SET")
+        .arg("my_key")
+        .arg("42")
+        .query(&mut con)
+        .unwrap();
+    let s: String = redis::cmd("GET").arg("my_key").query(&mut con).unwrap();
+    Html(s)
+}
 
 #[cfg(test)]
 mod tests {
     use std::env;
 
     use crate::repo::Peer;
-
 
     #[test]
     fn test_struct_deserialise() {

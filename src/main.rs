@@ -2,6 +2,8 @@ use std::net::SocketAddr;
 
 use axum::{routing::get, Router};
 
+mod repo;
+
 #[tokio::main]
 async fn main() {
     let app = Router::new().route("/", get(root));
@@ -16,4 +18,35 @@ async fn main() {
 // basic handler that responds with a static string
 async fn root() -> &'static str {
     "Hello, World!"
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+
+    use crate::repo::Peer;
+
+
+    #[test]
+    fn test_struct_deserialise() {
+        let data = r#"{"peer_id":"myid","offer":{"type":"type1","sdp":"sdp_example"}}"#;
+        let _v: Peer = serde_json::from_str(data).unwrap();
+    }
+    extern crate redis;
+
+    #[tokio::test]
+    async fn test_redis_connection() {
+        dotenv::dotenv().ok();
+
+        let client = redis::Client::open(env::var("REDIS_URL").unwrap()).unwrap();
+        let mut con = client.get_connection().unwrap();
+        let _: () = redis::cmd("SET")
+            .arg("my_key")
+            .arg("42")
+            .query(&mut con)
+            .unwrap();
+        let bar: String = redis::cmd("GET").arg("my_key").query(&mut con).unwrap();
+        dbg!(bar);
+    }
 }
